@@ -1,0 +1,10 @@
+# Author: Phan Tuan Thanh
+target/
+.idea/
+*.iml
+*.log
+data/
+hs_err_pid*
+.env
+.env.*
+!.env.example

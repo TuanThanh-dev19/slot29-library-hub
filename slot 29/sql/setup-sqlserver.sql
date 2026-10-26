@@ -1,0 +1,65 @@
+-- Author: Phan Tuan Thanh
+-- Run this complete script in SQL Server Management Studio (SSMS).
+-- Existing tables/data are preserved. No login or password is created.
+USE master;
+GO
+IF DB_ID(N'LibraryDB') IS NULL
+    EXEC(N'CREATE DATABASE LibraryDB');
+GO
+USE LibraryDB;
+GO
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+
+IF OBJECT_ID(N'dbo.STUDENTS', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.STUDENTS (
+        id BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_STUDENTS PRIMARY KEY,
+        email VARCHAR(150) NOT NULL CONSTRAINT UK_STUDENT_EMAIL UNIQUE,
+        first_name VARCHAR(80) NOT NULL,
+        last_name VARCHAR(80) NOT NULL,
+        gpa FLOAT(53) NOT NULL
+    );
+END;
+
+IF OBJECT_ID(N'dbo.BOOKS', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.BOOKS (
+        id BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_BOOKS PRIMARY KEY,
+        isbn VARCHAR(30) NOT NULL CONSTRAINT UK_BOOK_ISBN UNIQUE,
+        title VARCHAR(200) NOT NULL,
+        author VARCHAR(120) NOT NULL
+    );
+END;
+
+IF OBJECT_ID(N'dbo.STUDENTS_BOOKS', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.STUDENTS_BOOKS (
+        student_id BIGINT NOT NULL,
+        book_id BIGINT NOT NULL,
+        CONSTRAINT UK_STUDENT_BOOK PRIMARY KEY (student_id, book_id),
+        CONSTRAINT FK_STUDENT_BOOK_STUDENT FOREIGN KEY (student_id) REFERENCES dbo.STUDENTS(id),
+        CONSTRAINT FK_STUDENT_BOOK_BOOK FOREIGN KEY (book_id) REFERENCES dbo.BOOKS(id)
+    );
+END;
+
+IF OBJECT_ID(N'dbo.BORROWINGS', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.BORROWINGS (
+        id BIGINT IDENTITY(1,1) NOT NULL CONSTRAINT PK_BORROWINGS PRIMARY KEY,
+        student_id BIGINT NOT NULL,
+        book_id BIGINT NOT NULL,
+        borrowed_date DATE NOT NULL,
+        due_date DATE NOT NULL,
+        status VARCHAR(20) NOT NULL,
+        CONSTRAINT UK_BORROWING_STUDENT_BOOK_DATE UNIQUE (student_id, book_id, borrowed_date),
+        CONSTRAINT FK_BORROWING_STUDENT FOREIGN KEY (student_id) REFERENCES dbo.STUDENTS(id),
+        CONSTRAINT FK_BORROWING_BOOK FOREIGN KEY (book_id) REFERENCES dbo.BOOKS(id),
+        CONSTRAINT CK_BORROWING_STATUS CHECK (status IN ('BORROWED', 'RETURNED', 'OVERDUE'))
+    );
+END;
+
+COMMIT TRANSACTION;
+GO
+SELECT N'LibraryDB is ready. Start the application with sqlserver,demo profiles.' AS result;
+GO

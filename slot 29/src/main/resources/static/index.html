@@ -1,0 +1,33 @@
+<!-- Author: Phan Tuan Thanh -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Slot29 Library Hub</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/">S29<span>LIBRARY</span></a>
+    <div class="nav-label">KHÔNG GIAN QUẢN LÝ</div>
+    <nav><a href="#overview">Tổng quan <span>↗</span></a><a href="#students">Sinh viên</a><a href="#books">Kho sách</a><a href="#borrowing">Mượn &amp; trả</a></nav>
+    <div class="sidebar-footer">SBA301 · Slot 29<br><strong>Phan Tuan Thanh</strong></div>
+  </aside>
+  <main id="overview">
+    <header><div><div class="eyebrow">QUẢN LÝ THƯ VIỆN</div><h1>Mỗi cuốn sách,<br>một hành trình mới.</h1><p>Quản lý sinh viên, kết nối sách và theo dõi lượt mượn.</p></div><span class="edition">SLOT / 29<br><b>Slot29 Library Hub</b></span></header>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <section class="stats" aria-label="Thống kê"><article><span>Sinh viên</span><strong id="student-count">—</strong><small>Thành viên thư viện</small></article><article><span>Đầu sách</span><strong id="book-count">—</strong><small>Trong kho sách</small></article><article><span>Đang mượn</span><strong id="loan-count">—</strong><small>Liên kết sinh viên & sách</small></article></section>
+    <section class="panel" id="students"><div class="section-heading"><div><div class="eyebrow">01 / THÀNH VIÊN</div><h2>Sinh viên</h2></div><button type="button" id="refresh">Làm mới ↻</button></div>
+      <div class="table-scroll"><table><thead><tr><th>Sinh viên</th><th>Email</th><th>GPA</th><th>Sách đang mượn</th></tr></thead><tbody id="student-rows"><tr><td colspan="4">Đang tải dữ liệu…</td></tr></tbody></table></div>
+      <form id="student-form"><h3>Thêm sinh viên</h3><div class="fields"><label>Họ<input name="firstName" maxlength="80" placeholder="Phan" required></label><label>Tên<input name="lastName" maxlength="80" placeholder="Tuan Thanh" required></label><label>Email<input name="email" type="email" maxlength="150" placeholder="student@fpt.edu.vn" required></label><label>GPA<input name="gpa" type="number" min="0" max="10" step="0.01" placeholder="8.0" required></label><button class="primary">Thêm sinh viên +</button></div></form>
+    </section>
+    <section class="panel" id="books"><div class="section-heading"><div><div class="eyebrow">02 / BỘ SƯU TẬP</div><h2>Kho sách</h2></div><span class="muted">Tìm một ý tưởng mới</span></div><div id="book-list" class="book-grid"></div>
+      <form id="book-form"><h3>Thêm đầu sách</h3><div class="fields book-fields"><label>ISBN<input name="isbn" maxlength="30" placeholder="978-…" required></label><label>Tên sách<input name="title" maxlength="200" placeholder="Tên đầu sách" required></label><label>Tác giả<input name="author" maxlength="120" placeholder="Tên tác giả" required></label><button class="primary">Thêm sách +</button></div></form>
+    </section>
+    <section class="panel" id="borrowing"><div class="section-heading"><div><div class="eyebrow">03 / LƯU THÔNG</div><h2>Mượn &amp; trả sách</h2></div></div><p class="muted">Chọn sinh viên và đầu sách muốn mượn. Để trả sách, chọn “Trả” trong danh sách sinh viên phía trên.</p><form id="borrow-form"><div class="fields borrow-fields"><label>Sinh viên<select name="studentId" id="student-select" required></select></label><label>Sách<select name="bookId" id="book-select" required></select></label><button class="primary">Xác nhận mượn ↗</button></div></form></section>
+    <footer>Author: Phan Tuan Thanh <span>SBA301 · Hibernate Many-to-Many</span></footer>
+  </main>
+</body>
+</html>
