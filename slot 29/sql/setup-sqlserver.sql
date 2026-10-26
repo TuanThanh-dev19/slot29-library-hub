@@ -3,10 +3,10 @@
 -- Existing tables/data are preserved. No login or password is created.
 USE master;
 GO
-IF DB_ID(N'LibraryDB') IS NULL
-    EXEC(N'CREATE DATABASE LibraryDB');
+IF DB_ID(N'Slot29LibraryDB') IS NULL
+    EXEC(N'CREATE DATABASE Slot29LibraryDB');
 GO
-USE LibraryDB;
+USE Slot29LibraryDB;
 GO
 SET XACT_ABORT ON;
 BEGIN TRANSACTION;
@@ -61,5 +61,5 @@ END;
 
 COMMIT TRANSACTION;
 GO
-SELECT N'LibraryDB is ready. Start the application with sqlserver,demo profiles.' AS result;
+SELECT N'Slot29LibraryDB is ready. Start the application with sqlserver,demo profiles.' AS result;
 GO

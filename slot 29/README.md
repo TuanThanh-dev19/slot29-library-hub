@@ -9,7 +9,7 @@ Project thực hành cho **Chapter 17 – Hibernate Architecture, Configuration,
 2. Persistence context, Session và transaction được quản lý ở đâu.
 3. Vì sao DAO, Repository và Service có trách nhiệm khác nhau.
 
-Project dùng Java 21, Spring Boot 3.5.7, Hibernate ORM 6.6, Maven, H2 và Microsoft SQL Server. H2 chạy ở chế độ tương thích SQL Server để mọi sinh viên chạy test ngay; profile `sqlserver` dùng cho kiểm chứng trên `LibraryDB` thật.
+Project dùng Java 21, Spring Boot 3.5.7, Hibernate ORM 6.6, Maven, H2 và Microsoft SQL Server. Mặc định chạy SQL Server bằng Windows Authentication (xem README ở thư mục cha). H2 chạy ở chế độ tương thích SQL Server để mọi sinh viên chạy test ngay; profile `sqlserver` dùng cho kiểm chứng trên `Slot29LibraryDB` thật.
 
 ## 1. Kết quả đã triển khai
 
@@ -77,17 +77,23 @@ src/main/java/vn/edu/fpt/slot29
 │   ├── BorrowingDAO.java
 │   └── manual/ManualStudentDAO.java
 ├── repository/                  # interfaces + implementations
-└── service/                     # interfaces + @Transactional services
+├── service/                     # interfaces + @Transactional services
+└── web/LibraryController.java   # REST API + DTO + validation
 
 src/test/java
 ├── StudentPersistenceIntegrationTest.java  # T01–T07, T09–T12
 ├── MappingFailureTest.java                 # T08
-└── BorrowingEntityIntegrationTest.java
+├── BorrowingEntityIntegrationTest.java
+├── DemoRunnerIntegrationTest.java
+└── LibraryWebIntegrationTest.java
 
 src/main/resources
-├── application.properties                 # H2 mặc định
-└── application-sqlserver.properties       # LibraryDB
+├── application.properties                 # mặc định sqlserver,demo
+├── application-sqlserver.properties       # Slot29LibraryDB + Windows Authentication
+├── application-h2.properties              # H2 tùy chọn
+└── static/                               # index.html, styles.css, app.js
 
+sql/setup-sqlserver.sql
 sql/verify-sqlserver.sql
 ```
 
@@ -101,10 +107,10 @@ mvn -version
 git status
 ```
 
-Baseline đã kiểm chứng khi tạo project:
+Môi trường đã kiểm chứng trên máy hiện tại:
 
-- JDK `21.0.12.1`
-- Maven `3.9.9`
+- JDK `21.0.8` (build/test), JDK `24.0.2` (chạy web SQL Server)
+- Maven `3.9.16`
 - Spring Boot `3.5.7`
 - H2 `2.3.232`
 - Microsoft JDBC Driver `12.8.1.jre11` (chạy được trên Java 21)
@@ -126,37 +132,20 @@ BUILD SUCCESS
 ### 4.3. Chạy demo
 
 ```powershell
-mvn spring-boot:run "-Dspring-boot.run.profiles=demo"
+mvn spring-boot:run "-Dspring-boot.run.profiles=h2,demo"
 ```
 
 `DemoRunner` tạo một Student, hai Book, mượn cả hai trong một transaction, load bằng fetch plan và chạy query tìm Student theo Book.
 
-## 5. Chạy với SQL Server LibraryDB
+## 5. Chạy với SQL Server Slot29LibraryDB
 
-Mở và chạy toàn bộ file `sql/setup-sqlserver.sql` trong SSMS (hoặc dùng SQLCMD mode với lệnh dưới):
+Mặc định ứng dụng bật `sqlserver,demo`, sử dụng Windows Authentication tới `localhost:1433` và database `Slot29LibraryDB`. Instance trên máy hiện tại là `SQL2022`. Không cần username/password SQL.
 
-```sql
-:r sql/setup-sqlserver.sql
-GO
-```
+Chạy `sql/setup-sqlserver.sql` trong SSMS để tạo schema nếu dùng máy mới. Chạy script `setup-windows-auth.ps1` ở thư mục cha để tải DLL Microsoft JDBC 12.8.1 x64 vào hai thư mục làm việc. Máy hiện tại đã chuẩn bị xong.
 
-Thiết lập credential trong terminal, không ghi password vào Git:
+Bấm Run main class `Slot29Application` trong IntelliJ, đợi Tomcat khởi động rồi mở http://localhost:8080. Working directory dùng thư mục ngoài hoặc thư mục có pom.xml. Nếu có Active profiles cũ, xóa để dùng mặc định hoặc nhập `sqlserver,demo`.
 
-```powershell
-$env:LIBRARY_DB_URL = 'jdbc:sqlserver://localhost:1433;databaseName=LibraryDB;encrypt=true;trustServerCertificate=true'
-$env:LIBRARY_DB_USER = 'sa'
-$env:LIBRARY_DB_PASSWORD = 'your-password'
-mvn spring-boot:run "-Dspring-boot.run.profiles=sqlserver,demo"
-```
-
-Mở `sql/verify-sqlserver.sql` trong SSMS và chạy. PASS khi:
-
-- Có `STUDENTS`, `BOOKS`, `STUDENTS_BOOKS`, `BORROWINGS`.
-- `STUDENTS_BOOKS` có FK tới cả hai bảng cha.
-- Cặp `(student_id, book_id)` là duy nhất.
-- Demo tạo một Student, hai Book và hai join rows.
-
-Chạy `sql/setup-sqlserver.sql` để tạo database và bảng trước; profile SQL Server dùng `ddl-auto=validate` để kiểm tra schema. Production nên dùng Flyway/Liquibase và review migration thay vì để Hibernate tự thay schema.
+Chạy `sql/verify-sqlserver.sql` trong SSMS để xem bảng, dữ liệu và ràng buộc. Profile SQL Server dùng `ddl-auto=validate`, giữ schema và dữ liệu sau khi tắt ứng dụng. H2 chỉ dùng cho test hoặc profile tùy chọn `h2,demo`.
 
 ## 6. Workbook step by step
 
@@ -361,8 +350,14 @@ mvn "-Dtest=StudentPersistenceIntegrationTest#rollbackIsAtomic" test
 | G10 Remove | T05 kiểm join DELETE only |
 | G11 Shared safety | T06 bảo toàn Book |
 | G12 Query | T07 semantic HQL |
-| G13 Break/Fix | T08/T09/T10 + cascade experiment |
+| G13 Break/Fix | T08/T09/T10 tự động; cascade experiment là bài thực hành thủ công |
 | G14 Trade-off | Raw join table so với `Borrowing` |
+
+Phạm vi đã kiểm chứng: 17 test H2 đạt; SQL Server thật có đủ bốn bảng, hai FK và unique key của join table; web đọc dữ liệu, mượn/trả và giữ dữ liệu sau khi khởi động lại. Các test tự động hiện chạy bằng H2, chưa phải bộ 17 test chạy trên SQL Server.
+
+Step 19 (đặt breakpoint), Step 22 (thử cascade REMOVE trên branch riêng) và các câu hỏi lý thuyết là bài thực hành thủ công, chưa được đánh dấu hoàn thành. Không thay mapping an toàn của dự án để coi các bài thử lỗi là chức năng chính.
+
+Giao diện hiện có xem/thêm sinh viên, xem/thêm sách, mượn/trả. Cập nhật/xóa sinh viên và tìm sinh viên theo sách có ở Service/Repository; chưa có nút thao tác tương ứng trên giao diện. `Borrowing` có service và test riêng; giao diện hiện dùng `STUDENTS_BOOKS`.
 
 ## 7. Mười hai phần bổ sung đã xử lý
 

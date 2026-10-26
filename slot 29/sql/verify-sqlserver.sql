@@ -1,5 +1,5 @@
 -- Author: Phan Tuan Thanh
-USE LibraryDB;
+USE Slot29LibraryDB;
 GO
 
 SELECT DB_NAME() AS current_database;
